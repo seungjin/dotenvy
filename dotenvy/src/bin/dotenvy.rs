@@ -27,7 +27,8 @@ fn mk_cmd(program: &str, args: &[String]) -> process::Command {
     version,
     about = "Run a command using an environment loaded from an env file",
     arg_required_else_help = true,
-    allow_external_subcommands = true
+    allow_external_subcommands = true,
+    disable_help_subcommand = true
 )]
 struct Cli {
     #[arg(short, long, default_value = "./.env")]
@@ -59,12 +60,16 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             };
 
             // load the file
-            let loader = EnvLoader::with_reader(file).path(&cli.file).sequence(seq);
+            let loader =
+                EnvLoader::with_reader(file).path(&cli.file).sequence(seq);
             unsafe { loader.load_and_modify() }?;
         }
         Err(e) => {
             if cli.required && e.kind() == ErrorKind::NotFound {
-                eprintln!("Failed to load {path}: {e}", path = cli.file.display());
+                eprintln!(
+                    "Failed to load {path}: {e}",
+                    path = cli.file.display()
+                );
             }
             process::exit(1);
         }
